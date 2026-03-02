@@ -143,43 +143,49 @@
         // --- Funções de Ranking (Classificação) ---
         
         // Escuta em tempo real os dados dos candidatos para criar o ranking
-        function listenForRanking() {
-            const rankingList = document.getElementById('ranking-list');
-            const rankingLoading = document.getElementById('ranking-loading'); 
-            const summaryQuery = query(collection(db, CANDIDATES_PATH));
+       function listenForRanking() {
+    const rankingList = document.getElementById('ranking-list');
+    const summaryQuery = query(collection(db, CANDIDATES_PATH));
+    
+    onSnapshot(summaryQuery, (snapshot) => {
+        let results = [];
+        let totalVotosEvento = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const votos = data.voteCount || 0;
+            totalVotosEvento += votos;
+            results.push({ id: doc.id, name: data.name, votes: votos });
+        });
+
+        // Ordena por quantidade de votos
+        results.sort((a, b) => b.votes - a.votes);
+
+        rankingList.innerHTML = '';
+        results.forEach((r, index) => {
+            // Cálculo da porcentagem
+            const percent = totalVotosEvento > 0 ? ((r.votes / totalVotosEvento) * 100).toFixed(1) : 0;
             
-            onSnapshot(summaryQuery, (snapshot) => {
-                let results = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const avg = data.voteCount > 0 ? (data.totalScore / data.voteCount).toFixed(2) : '0.00';
-                    results.push({ id: doc.id, name: data.name, avgScore: parseFloat(avg), voteCount: data.voteCount || 0 });
-                });
-
-                // Ordena por média de pontos (decrescente)
-                results.sort((a, b) => b.avgScore - a.avgScore);
-
-                rankingList.innerHTML = '';
-                if (results.length === 0) {
-                    rankingList.innerHTML = `<p class="text-center text-xl text-red-400">Nenhum candidato ou voto ainda.</p>`;
-                } else {
-                    results.forEach((r, index) => {
-                        rankingList.appendChild(createRankingItem(r, index + 1));
-                    });
-                }
-                
-                if (rankingLoading) {
-                    rankingLoading.style.display = 'none';
-                }
-                
-            }, (error) => {
-                console.error("Erro ao carregar ranking:", error);
-                rankingList.innerHTML = `<p class="text-red-500 text-center">Erro ao carregar ranking: ${error.message}</p>`;
-                
-                if (rankingLoading) {
-                    rankingLoading.style.display = 'none';
-                }
-            });
+            const item = document.createElement('div');
+            const isWinner = index === 0 && r.votes > 0;
+            item.className = `p-4 rounded-xl flex justify-between items-center mb-2 ${isWinner ? 'winner' : 'bg-gray-800'}`;
+            
+            item.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span class="text-2xl font-bold">${index + 1}º</span>
+                    <span class="text-xl">${r.name}</span>
+                </div>
+                <div class="text-right">
+                    <span class="block text-2xl font-black text-karaoke-blue">${percent}%</span>
+                    <button onclick="showVotersList('${r.id}', '${r.name}')" class="text-xs underline text-gray-400">
+                        ${r.votes} votos
+                    </button>
+                </div>
+            `;
+            rankingList.appendChild(item);
+        });
+    });
+}
         }
 
         // Cria o elemento visual de um item do ranking
