@@ -226,27 +226,29 @@
         }
 
         // Cria o card de votação para um candidato
-        function createCandidateCard(id, name) {
-            const card = document.createElement('div');
-            card.className = 'bg-gray-700 p-4 rounded-xl shadow-xl transition duration-300 hover:scale-[1.02]';
-            
-            // Notas de 5 a 10
-            const scores = [5, 6, 7, 8, 9, 10]; 
-
-            card.innerHTML = `
-                <h3 class="text-2xl font-bold text-center mb-4 text-karaoke-blue">${name}</h3>
-                <div class="score-selector flex justify-center flex-wrap gap-2" data-candidate-id="${id}">
-                    ${scores.map(score => `
-                        <button class="score-button w-10 h-10 rounded-full font-bold text-sm" data-score="${score}">${score}</button>
-                    `).join('')}
-                </div>
-            `;
-            
-            card.querySelectorAll('.score-button').forEach(button => {
-                button.addEventListener('click', (e) => handleScoreSelection(e, id));
-            });
-            return card;
-        }
+        // Altere a função de criar o card para remover as notas de 5-10
+function createCandidateCard(id, name) {
+    const card = document.createElement('div');
+    card.className = 'bg-gray-700 p-6 rounded-xl shadow-xl transition duration-300 hover:scale-[1.02] cursor-pointer border-2 border-transparent';
+    card.id = `card-${id}`;
+    
+    card.innerHTML = `
+        <h3 class="text-2xl font-bold text-center text-karaoke-blue">${name}</h3>
+        <p class="text-center text-gray-400 mt-2 text-sm">Clique para selecionar</p>
+    `;
+    
+    card.addEventListener('click', () => {
+        // Limpa seleções anteriores
+        document.querySelectorAll('[id^="card-"]').forEach(c => c.classList.remove('border-karaoke-pink', 'bg-gray-600'));
+        // Seleciona o atual
+        card.classList.add('border-karaoke-pink', 'bg-gray-600');
+        selectedCandidateId = id;
+        selectedScore = 1; // Agora cada voto vale exatamente 1 ponto
+        document.getElementById('submit-vote-btn').disabled = false;
+        document.getElementById('submit-vote-btn').classList.replace('bg-gray-500', 'bg-green-500');
+    });
+    return card;
+}
 
         // Lida com a seleção da nota
         function handleScoreSelection(event, candidateId) {
