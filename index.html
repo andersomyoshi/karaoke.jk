@@ -3,122 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Votação Karaokê - Dê Sua Nota!</title>
-    <!-- Tailwind CSS para estilo -->
+    <title>Votação Karaokê - Escolha seu Favorito!</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configuração de fontes e cores personalizadas -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bungee+Outline&family=Changa+One:ital@0;1&display=swap');
         :root {
-            /* Personalize o nome do seu evento e a URL da imagem de fundo */
             --logo-text: "Noite de Estrelas";
             --background-image: url('https://static.vecteezy.com/system/resources/previews/029/561/970/non_2x/music-karaoke-party-vivid-background-free-photo.jpg'); 
-            --karaoke-pink: #ff1493; /* Deep Pink */
-            --karaoke-blue: #00ffff; /* Aqua */
+            --karaoke-pink: #ff1493;
+            --karaoke-blue: #00ffff;
         }
         body {
-            background-color: #0d131f; /* Azul escuro quase preto */
+            background-color: #0d131f;
             background-image: var(--background-image);
             background-size: cover;
             background-attachment: fixed;
             color: white;
             font-family: 'Changa One', sans-serif;
-            transition: all 0.3s ease;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        /* Estilo para a caixa principal de votação */
         .vote-card {
             backdrop-filter: blur(10px) brightness(80%);
-            background-color: rgba(13, 19, 31, 0.85); /* Fundo semi-transparente */
+            background-color: rgba(13, 19, 31, 0.85);
             border: 3px solid var(--karaoke-pink);
             box-shadow: 0 0 20px var(--karaoke-blue), 0 0 40px var(--karaoke-pink) inset;
         }
-        /* Estilo para o título (fonte neon) */
         .karaoke-title {
             font-family: 'Bungee Outline', cursive;
             text-shadow: 0 0 5px var(--karaoke-blue), 0 0 10px var(--karaoke-pink);
-            animation: flicker 1.5s infinite alternate;
         }
-        @keyframes flicker {
-            0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; text-shadow: 0 0 5px var(--karaoke-blue), 0 0 10px var(--karaoke-pink); }
-            20%, 24%, 55% { opacity: 0.8; text-shadow: none; }
+        /* Efeito Neon para Seleção */
+        .candidate-item {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
-        .score-button {
-            transition: all 0.2s;
-            background-color: var(--karaoke-pink);
-            color: #0d131f;
-            border: 1px solid var(--karaoke-blue);
+        .candidate-item.selected {
+            border-color: var(--karaoke-blue);
+            background-color: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px var(--karaoke-blue), 0 0 10px var(--karaoke-pink) inset;
+            transform: scale(1.05);
         }
-        .score-button:hover, .score-button.selected {
-            background-color: var(--karaoke-blue);
+        .candidate-item.selected h3 {
+            text-shadow: 0 0 8px var(--karaoke-blue);
             color: white;
-            transform: scale(1.1);
-            box-shadow: 0 0 8px var(--karaoke-pink);
         }
     </style>
 </head>
 <body class="p-4">
-
     <div class="vote-card max-w-4xl w-full p-8 rounded-2xl mt-8 mb-8">
-        <h1 class="karaoke-title text-4xl sm:text-5xl text-center mb-8">Votação Karaokê <span class="block text-2xl" id="event-name"></span></h1>
+        <h1 class="karaoke-title text-4xl sm:text-5xl text-center mb-8">VOTAÇÃO KARAOKÊ</h1>
         
-        <!-- Área de Votação Principal -->
-        <div id="voting-area" class="transition-opacity duration-500">
-            
-            <!-- NOVO CAMPO: Nickname -->
+        <div id="voting-area">
             <div class="mb-6 bg-gray-700 p-4 rounded-lg">
-                <label for="voter-nickname" class="block text-xl font-bold mb-2 text-yellow-300">Seu Nome ou Apelido (Obrigatório):</label>
-                <input type="text" id="voter-nickname" placeholder="Digite seu nome/apelido" class="w-full p-3 rounded text-black bg-white border border-gray-400 focus:outline-none focus:border-karaoke-pink" maxlength="20">
+                <label for="voter-nickname" class="block text-xl font-bold mb-2 text-yellow-300">Seu Nome ou Apelido:</label>
+                <input type="text" id="voter-nickname" placeholder="Digite seu nome" class="w-full p-3 rounded text-black bg-white focus:outline-none" maxlength="20">
             </div>
 
-            <p class="text-center mb-6 text-xl text-yellow-300">Selecione um cantor e dê sua nota de 5 a 10!</p>
-            
-            <!-- Mensagens de Status -->
-            <div class="text-center col-span-full mb-4">
-                <p id="loading-message" class="text-xl">Carregando candidatos...</p>
-                <p id="error-message" class="text-red-500 hidden">Não foi possível carregar os candidatos. Tente novamente mais tarde.</p>
-                <p id="status-message" class="text-red-400 hidden mt-2"></p>
-            </div>
+            <p class="text-center mb-6 text-xl text-yellow-300">Selecione o cantor para dar seu voto!</p>
             
             <div id="candidates-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Lista de Candidatos será injetada aqui -->
-            </div>
+                </div>
 
-            <!-- Botão de Confirmação -->
             <div class="text-center mt-8">
-                <button id="submit-vote-btn" disabled class="bg-gray-500 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                    Votar
+                <p id="status-message" class="hidden mb-4"></p>
+                <button id="submit-vote-btn" disabled class="bg-gray-500 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 opacity-50">
+                    Confirmar Voto
                 </button>
             </div>
         </div>
-
-        <!-- Área de Agradecimento (apenas fallback) -->
-        <div id="thank-you-area" class="text-center hidden transition-opacity duration-500">
-            <h2 class="text-3xl sm:text-4xl text-karaoke-blue mb-4">Obrigado pelo seu Voto! 🎉</h2>
-            <p class="text-xl mb-6">Você será redirecionado automaticamente para o ranking...</p>
-            
-             <button onclick="window.location.href = 'resultados.html';" class="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300">Ir para Resultados</button>
-        </div>
     </div>
 
-    <!-- Rodapé -->
-    <footer class="mt-auto w-full p-4 text-center text-sm text-gray-400 bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-sm">
-        2025 By: An.Yoshi - Todos os direitos reservados.
-    </footer>
-
-    <!-- Script do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, addDoc, query, updateDoc, increment, runTransaction, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, query, where, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis globais MANDATÓRIAS do Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        // Configuração de fallback usando os dados iniciais do usuário
         const FALLBACK_CONFIG = {
             apiKey: "AIzaSyAuQ9XNsGVIp7Y0FRftnbNhDL9lGl8hNTI",
             authDomain: "karaoke-38a94.firebaseapp.com",
@@ -127,239 +90,91 @@
             messagingSenderId: "17039001114",
             appId: "1:17039001114:web:5a382081f045d4f84273a3"
         };
-        const firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config ? JSON.parse(__firebase_config) : FALLBACK_CONFIG;
-
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const app = initializeApp(firebaseConfig);
+        
+        const app = initializeApp(FALLBACK_CONFIG);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Caminhos para as coleções públicas
         const CANDIDATES_PATH = `/artifacts/${appId}/public/data/candidates`;
         const VOTES_PATH = `/artifacts/${appId}/public/data/votes`;
 
-        let userId = null;
         let selectedCandidateId = null;
-        let selectedScore = 0;
-        let candidatesMap = {}; // Para armazenar candidatos por ID
-        
-        const nicknameInput = document.getElementById('voter-nickname');
-        const statusMessage = document.getElementById('status-message');
 
+        async function init() {
+            await signInAnonymously(auth);
+            loadCandidates();
+        }
 
-        document.getElementById('event-name').textContent = document.documentElement.style.getPropertyValue('--logo-text');
-
-        // --- Funções de Inicialização e Autenticação ---
-        async function initializeAuth() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("Autenticado com sucesso. User ID:", userId);
-                        loadCandidates();
-                    } else {
-                        console.error("Falha na autenticação. Tentando novamente...");
+        function loadCandidates() {
+            const list = document.getElementById('candidates-list');
+            onSnapshot(query(collection(db, CANDIDATES_PATH)), (snap) => {
+                list.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    if (c.isVotingEnabled !== false) {
+                        const div = document.createElement('div');
+                        div.className = 'candidate-item bg-gray-800 p-6 rounded-xl cursor-pointer text-center';
+                        div.innerHTML = `<h3 class="text-2xl font-bold text-karaoke-blue">${c.name}</h3>`;
+                        div.onclick = () => selectCandidate(docSnap.id, div);
+                        list.appendChild(div);
                     }
                 });
-            } catch (error) {
-                console.error("Erro durante a autenticação:", error);
-                document.getElementById('error-message').textContent = "Erro de autenticação: " + error.message;
-                document.getElementById('error-message').classList.remove('hidden');
-            }
-        }
-
-        // Exibe mensagens de status na UI
-        function showStatus(message, isError = false) {
-            statusMessage.textContent = message;
-            statusMessage.classList.remove('hidden', 'text-green-500', 'text-red-400');
-            statusMessage.classList.add(isError ? 'text-red-400' : 'text-green-500');
-            // Oculta a mensagem após 5 segundos
-            setTimeout(() => { statusMessage.classList.add('hidden'); }, 5000);
-        }
-
-        // --- Funções de Votação e UI ---
-
-        // Carrega a lista de candidatos
-        function loadCandidates() {
-            const listContainer = document.getElementById('candidates-list');
-            listContainer.innerHTML = '';
-            
-            const loadingMessage = document.getElementById('loading-message');
-            const errorMessage = document.getElementById('error-message');
-            
-            if (loadingMessage) loadingMessage.classList.remove('hidden');
-            if (errorMessage) errorMessage.classList.add('hidden');
-
-            const candidatesQuery = query(collection(db, CANDIDATES_PATH));
-            
-            // onSnapshot para atualizar candidatos em tempo real e filtrar por isVotingEnabled
-            onSnapshot(candidatesQuery, (snapshot) => {
-                listContainer.innerHTML = '';
-                candidatesMap = {}; 
-                
-                const enabledCandidates = snapshot.docs.filter(doc => doc.data().isVotingEnabled !== false); // Filtra por 'isVotingEnabled: true' ou não definido
-                
-                if (enabledCandidates.length === 0) {
-                    listContainer.innerHTML = `<p class="col-span-full text-xl text-yellow-500">Nenhum candidato com votação ativa. Verifique a página <a href="admin.html" class="text-karaoke-pink underline">Admin</a>.</p>`;
-                } else {
-                    enabledCandidates.forEach(doc => {
-                        const candidate = doc.data();
-                        candidatesMap[doc.id] = candidate;
-                        listContainer.appendChild(createCandidateCard(doc.id, candidate.name));
-                    });
-                }
-                if (loadingMessage) loadingMessage.classList.add('hidden');
-            }, (error) => {
-                console.error("Erro ao carregar candidatos:", error);
-                if (errorMessage) {
-                    errorMessage.classList.remove('hidden');
-                    errorMessage.textContent = "Erro ao carregar candidatos: " + error.message;
-                }
-                if (loadingMessage) loadingMessage.classList.add('hidden');
             });
         }
 
-        // Cria o card de votação para um candidato
-        // Altere a função de criar o card para remover as notas de 5-10
-function createCandidateCard(id, name) {
-    const card = document.createElement('div');
-    card.className = 'bg-gray-700 p-6 rounded-xl shadow-xl transition duration-300 hover:scale-[1.02] cursor-pointer border-2 border-transparent';
-    card.id = `card-${id}`;
-    
-    card.innerHTML = `
-        <h3 class="text-2xl font-bold text-center text-karaoke-blue">${name}</h3>
-        <p class="text-center text-gray-400 mt-2 text-sm">Clique para selecionar</p>
-    `;
-    
-    card.addEventListener('click', () => {
-        // Limpa seleções anteriores
-        document.querySelectorAll('[id^="card-"]').forEach(c => c.classList.remove('border-karaoke-pink', 'bg-gray-600'));
-        // Seleciona o atual
-        card.classList.add('border-karaoke-pink', 'bg-gray-600');
-        selectedCandidateId = id;
-        selectedScore = 1; // Agora cada voto vale exatamente 1 ponto
-        document.getElementById('submit-vote-btn').disabled = false;
-        document.getElementById('submit-vote-btn').classList.replace('bg-gray-500', 'bg-green-500');
-    });
-    return card;
-}
-
-        // Lida com a seleção da nota
-        function handleScoreSelection(event, candidateId) {
-            const clickedButton = event.currentTarget;
-            const score = parseInt(clickedButton.getAttribute('data-score'));
-            
-            // Limpa seleções de score para todos os cards
-            document.querySelectorAll('.score-button').forEach(btn => btn.classList.remove('selected'));
-
-            // Seleciona o novo botão
-            clickedButton.classList.add('selected');
-
-            selectedCandidateId = candidateId;
-            selectedScore = score;
-            document.getElementById('submit-vote-btn').disabled = false;
+        function selectCandidate(id, element) {
+            document.querySelectorAll('.candidate-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedCandidateId = id;
+            const btn = document.getElementById('submit-vote-btn');
+            btn.disabled = false;
+            btn.classList.replace('bg-gray-500', 'bg-green-600');
+            btn.classList.remove('opacity-50');
         }
 
-        // Envia o voto para o Firestore
-        document.getElementById('submit-vote-btn').addEventListener('click', async () => {
-            const nickname = nicknameInput.value.trim();
+        document.getElementById('submit-vote-btn').onclick = async () => {
+            const nick = document.getElementById('voter-nickname').value.trim();
+            const status = document.getElementById('status-message');
             
-            if (!nickname) {
-                showStatus("Por favor, insira seu nome ou apelido para votar.", true);
+            if(!nick) {
+                alert("Por favor, digite seu apelido!");
                 return;
             }
-            if (!selectedCandidateId || selectedScore < 5) {
-                showStatus("Selecione um candidato e uma nota (5-10).", true);
-                return;
-            }
-
-            const button = document.getElementById('submit-vote-btn');
-            button.textContent = "Verificando...";
-            button.disabled = true;
 
             try {
-                // 1. VERIFICAÇÃO DE VOTO ÚNICO POR CANDIDATO/NICKNAME
-                const existingVoteQuery = query(
-                    collection(db, VOTES_PATH),
-                    where("candidateId", "==", selectedCandidateId),
-                    where("voterNickname", "==", nickname)
-                );
-                
-                const existingVotesSnapshot = await getDocs(existingVoteQuery);
+                // Checa se já votou nesse candidato com esse apelido
+                const q = query(collection(db, VOTES_PATH), 
+                    where("candidateId", "==", selectedCandidateId), 
+                    where("voterNickname", "==", nick));
+                const existing = await getDocs(q);
 
-                if (!existingVotesSnapshot.empty) {
-                    showStatus("Você já votou neste candidato com este apelido.", true);
-                    button.textContent = "Votar";
-                    button.disabled = false;
+                if(!existing.empty) {
+                    status.textContent = "Você já votou neste cantor!";
+                    status.className = "text-red-400 block mb-4";
                     return;
                 }
 
-                // 2. Salva o voto individual
-                button.textContent = "Enviando...";
                 await addDoc(collection(db, VOTES_PATH), {
                     candidateId: selectedCandidateId,
-                    score: selectedScore,
-                    voterNickname: nickname, // NOVO CAMPO
-                    timestamp: new Date().toISOString(),
-                    voterId: userId
+                    voterNickname: nick,
+                    timestamp: new Date().toISOString()
                 });
-                
-                // 3. Atualiza o resumo de pontos 
-                await updateCandidateSummary(selectedCandidateId, selectedScore);
 
-                // 4. REDIRECIONAMENTO AUTOMÁTICO
-                showStatus("Voto enviado com sucesso! Redirecionando...", false);
-                setTimeout(() => {
-                    window.location.href = 'resultados.html';
-                }, 1000);
+                // Incrementa contador
+                const ref = doc(db, CANDIDATES_PATH, selectedCandidateId);
+                await runTransaction(db, async (t) => {
+                    const snap = await t.get(ref);
+                    const newVotes = (snap.data().voteCount || 0) + 1;
+                    t.update(ref, { voteCount: newVotes });
+                });
 
-
+                window.location.href = 'resultados.html';
             } catch (e) {
-                console.error("Erro ao enviar voto: ", e);
-                showStatus(`Erro ao votar. Verifique a conexão ou as regras do Firebase. Detalhe: ${e.message}`, true);
-                button.textContent = "Votar";
-                button.disabled = false;
+                console.error(e);
             }
-        });
+        };
 
-        // Tenta atualizar o resumo do candidato usando Transaction para segurança de concorrência
-        async function updateCandidateSummary(candidateId, score) {
-            const candidateRef = doc(db, CANDIDATES_PATH, candidateId);
-            
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const candidateDoc = await transaction.get(candidateRef);
-
-                    if (!candidateDoc.exists()) {
-                        throw "Candidato não encontrado!";
-                    }
-                    
-                    const newTotalScore = (candidateDoc.data().totalScore || 0) + score;
-                    const newVoteCount = (candidateDoc.data().voteCount || 0) + 1;
-                    
-                    transaction.update(candidateRef, {
-                        totalScore: newTotalScore,
-                        voteCount: newVoteCount,
-                    });
-                });
-                console.log("Resumo do candidato atualizado com sucesso.");
-            } catch (e) {
-                console.error("Erro na transação de atualização do resumo:", e);
-                await updateDoc(candidateRef, {
-                    totalScore: increment(score),
-                    voteCount: increment(1)
-                });
-            }
-        }
-        
-        window.onload = initializeAuth;
-
+        init();
     </script>
 </body>
 </html>
