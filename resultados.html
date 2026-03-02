@@ -4,97 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking - Karaokê</title>
-    <!-- Tailwind CSS para estilo -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Configuração de fontes e cores personalizadas -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bungee+Outline&family=Changa+One:ital@0;1&display=swap');
         :root {
             --background-image: url('https://static.vecteezy.com/system/resources/previews/029/561/970/non_2x/music-karaoke-party-vivid-background-free-photo.jpg'); 
-            --karaoke-pink: #ff1493; /* Deep Pink */
-            --karaoke-blue: #00ffff; /* Aqua */
+            --karaoke-pink: #ff1493;
+            --karaoke-blue: #00ffff;
         }
         body {
-            background-color: #1f0d1f; /* Roxo escuro */
-            background-image: var(--background-image);
-            background-size: cover;
-            background-attachment: fixed;
+            background: #1f0d1f var(--background-image) fixed center/cover;
             color: white;
             font-family: 'Changa One', sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
         .ranking-card {
             backdrop-filter: blur(10px) brightness(80%);
             background-color: rgba(31, 13, 31, 0.85);
             border: 3px solid var(--karaoke-blue);
-            box-shadow: 0 0 15px var(--karaoke-pink), 0 0 30px var(--karaoke-blue) inset;
+            box-shadow: 0 0 15px var(--karaoke-pink);
         }
-        .ranking-title {
-            font-family: 'Bungee Outline', cursive;
-            text-shadow: 0 0 10px var(--karaoke-pink), 0 0 20px var(--karaoke-blue);
-            color: white;
-            animation: pulse 2s infinite alternate;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.02); opacity: 0.95; }
-        }
-        /* Estilos específicos para o 1º lugar */
         .winner {
             background: linear-gradient(45deg, var(--karaoke-pink), var(--karaoke-blue));
-            color: #1f0d1f;
-            transform: scale(1.05);
-            font-size: 2.5rem; /* Maior nome */
-            box-shadow: 0 0 25px gold;
+            box-shadow: 0 0 20px gold;
+            color: black;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8 flex flex-col min-h-screen">
-
-    <h1 class="ranking-title text-5xl sm:text-6xl text-center mb-8">CLASSIFICAÇÃO KARAOKÊ</h1>
-
-    <!-- Coluna de Resultados (Ranking) -->
-    <div class="ranking-card w-full max-w-4xl p-6 rounded-2xl flex flex-col min-h-[500px] mb-8">
-        <h2 class="text-3xl font-bold mb-6 text-center text-yellow-300 border-b pb-3 border-gray-600">Ranking ao Vivo</h2>
-        <div id="ranking-list" class="flex flex-col gap-4 flex-grow">
-            <p class="text-center text-xl" id="ranking-loading">Carregando resultados...</p>
-        </div>
-    </div>
+<body class="p-8">
+    <h1 class="text-5xl text-center mb-8 font-bold" style="font-family:'Bungee Outline'">RANKING GERAL</h1>
     
-    <!-- NOVO MODAL: Lista de Votantes -->
-    <div id="voters-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-lg w-full border-2 border-karaoke-pink">
-            <h3 id="voters-modal-title" class="text-2xl font-bold text-yellow-300 mb-4 border-b pb-2">Votantes para [Candidato]</h3>
-            <div id="voters-list-container" class="max-h-80 overflow-y-auto space-y-2 bg-gray-700 p-3 rounded">
-                <!-- Nomes dos votantes serão injetados aqui -->
-                <p id="voters-loading" class="text-center text-gray-400">Carregando nomes...</p>
-            </div>
-            <div class="flex justify-end mt-4">
-                <button onclick="closeVotersModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">Fechar</button>
-            </div>
+    <div class="ranking-card w-full max-w-2xl p-6 rounded-2xl">
+        <div id="ranking-list" class="space-y-4">
+            <p class="text-center">Carregando votos...</p>
         </div>
     </div>
 
-    <!-- Rodapé -->
-    <footer class="mt-auto w-full p-4 text-center text-sm text-gray-400 bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-sm">
-        2025 By: An.Yoshi - Todos os direitos reservados.
-    </footer>
-
-    <!-- Script do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis globais MANDATÓRIAS do Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        // Configuração de fallback usando os dados iniciais do usuário
         const FALLBACK_CONFIG = {
             apiKey: "AIzaSyAuQ9XNsGVIp7Y0FRftnbNhDL9lGl8hNTI",
             authDomain: "karaoke-38a94.firebaseapp.com",
@@ -103,174 +56,36 @@
             messagingSenderId: "17039001114",
             appId: "1:17039001114:web:5a382081f045d4f84273a3"
         };
-        const firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config ? JSON.parse(__firebase_config) : FALLBACK_CONFIG;
 
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(FALLBACK_CONFIG);
         const db = getFirestore(app);
-        const auth = getAuth(app);
+        const list = document.getElementById('ranking-list');
 
-        // Caminhos para as coleções públicas
-        const CANDIDATES_PATH = `/artifacts/${appId}/public/data/candidates`;
-        const VOTES_PATH = `/artifacts/${appId}/public/data/votes`;
+        onSnapshot(query(collection(db, `/artifacts/${appId}/public/data/candidates`)), (snap) => {
+            let candidates = [];
+            let totalVotos = 0;
 
-        let userId = null;
+            snap.forEach(d => {
+                const data = d.data();
+                const v = data.voteCount || 0;
+                totalVotos += v;
+                candidates.push({ name: data.name, votes: v });
+            });
 
-        // --- Funções de Inicialização e Autenticação ---
-        async function initializeAuth() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("Visualizador autenticado. User ID:", userId);
-                        // Inicia listeners após autenticação
-                        listenForRanking();
-                    } else {
-                        console.error("Falha na autenticação Visualizador.");
-                    }
-                });
-            } catch (error) {
-                console.error("Erro durante a autenticação:", error);
-            }
-        }
+            candidates.sort((a, b) => b.votes - a.votes);
+            list.innerHTML = '';
 
-        // --- Funções de Ranking (Classificação) ---
-        
-        // Escuta em tempo real os dados dos candidatos para criar o ranking
-       function listenForRanking() {
-    const rankingList = document.getElementById('ranking-list');
-    const summaryQuery = query(collection(db, CANDIDATES_PATH));
-    
-    onSnapshot(summaryQuery, (snapshot) => {
-        let results = [];
-        let totalVotosEvento = 0;
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const votos = data.voteCount || 0;
-            totalVotosEvento += votos;
-            results.push({ id: doc.id, name: data.name, votes: votos });
+            candidates.forEach((c, i) => {
+                const perc = totalVotos > 0 ? ((c.votes / totalVotos) * 100).toFixed(1) : 0;
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-xl flex justify-between items-center ${i === 0 && c.votes > 0 ? 'winner' : 'bg-gray-800'}`;
+                div.innerHTML = `
+                    <span class="text-xl font-bold">${i+1}º ${c.name}</span>
+                    <span class="text-2xl font-black">${perc}%</span>
+                `;
+                list.appendChild(div);
+            });
         });
-
-        // Ordena por quantidade de votos
-        results.sort((a, b) => b.votes - a.votes);
-
-        rankingList.innerHTML = '';
-        results.forEach((r, index) => {
-            // Cálculo da porcentagem
-            const percent = totalVotosEvento > 0 ? ((r.votes / totalVotosEvento) * 100).toFixed(1) : 0;
-            
-            const item = document.createElement('div');
-            const isWinner = index === 0 && r.votes > 0;
-            item.className = `p-4 rounded-xl flex justify-between items-center mb-2 ${isWinner ? 'winner' : 'bg-gray-800'}`;
-            
-            item.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <span class="text-2xl font-bold">${index + 1}º</span>
-                    <span class="text-xl">${r.name}</span>
-                </div>
-                <div class="text-right">
-                    <span class="block text-2xl font-black text-karaoke-blue">${percent}%</span>
-                    <button onclick="showVotersList('${r.id}', '${r.name}')" class="text-xs underline text-gray-400">
-                        ${r.votes} votos
-                    </button>
-                </div>
-            `;
-            rankingList.appendChild(item);
-        });
-    });
-}
-        }
-
-        // Cria o elemento visual de um item do ranking
-        function createRankingItem(candidate, rank) {
-            const item = document.createElement('div');
-            const isWinner = rank === 1 && candidate.voteCount > 0;
-            
-            item.className = `p-4 rounded-xl flex justify-between items-center transition-all duration-300 shadow-lg ${isWinner ? 'winner' : 'bg-gray-800 hover:bg-gray-700'}`;
-            
-            // Verifica se há votos para tornar o botão clicável
-            const voteButtonHtml = candidate.voteCount > 0 
-                ? `
-                    <button 
-                        class="vote-count-button font-bold ${isWinner ? 'text-black hover:text-gray-900' : 'text-gray-400 hover:text-white'} text-sm hover:underline transition-colors"
-                        onclick="showVotersList('${candidate.id}', '${candidate.name}')"
-                        title="Clique para ver os votantes"
-                    >
-                        Total de votos: ${candidate.voteCount}
-                    </button>
-                ` 
-                : `<span class="${isWinner ? 'text-black' : 'text-gray-400'} text-sm">Total de votos: 0</span>`;
-
-            item.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <span class="text-3xl font-extrabold ${isWinner ? 'text-black' : 'text-karaoke-pink'}">${rank}º</span>
-                    <span class="font-bold ${isWinner ? 'text-3xl text-black' : 'text-xl text-white'}">${candidate.name}</span>
-                </div>
-                <div class="text-right">
-                    <span class="block text-2xl font-extrabold ${isWinner ? 'text-black' : 'text-karaoke-blue'}">${candidate.avgScore.toFixed(2)}</span>
-                    ${voteButtonHtml}
-                </div>
-            `;
-            return item;
-        }
-        
-        // --- Funções do Modal de Votantes ---
-
-        // Função para mostrar a lista de votantes
-        window.showVotersList = async (candidateId, candidateName) => {
-            const modal = document.getElementById('voters-modal');
-            const title = document.getElementById('voters-modal-title');
-            const listContainer = document.getElementById('voters-list-container');
-            
-            title.textContent = `Votantes para: ${candidateName}`;
-            listContainer.innerHTML = '<p id="voters-loading" class="text-center text-gray-400">Carregando nomes...</p>';
-            modal.classList.remove('hidden');
-
-            try {
-                // Consulta para buscar todos os votos deste candidato
-                const votesQuery = query(
-                    collection(db, VOTES_PATH), 
-                    where("candidateId", "==", candidateId)
-                );
-                
-                const snapshot = await getDocs(votesQuery);
-                
-                if (snapshot.empty) {
-                    listContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum votante encontrado.</p>';
-                } else {
-                    const nicknames = snapshot.docs
-                        .map(doc => doc.data().voterNickname)
-                        .filter(nickname => nickname); // Remove apelidos nulos ou vazios
-
-                    // Remover duplicatas, caso o nickname tenha sido usado para votar em outros candidatos
-                    const uniqueNicknames = Array.from(new Set(nicknames));
-                    
-                    listContainer.innerHTML = uniqueNicknames.map(name => 
-                        `<div class="bg-gray-600 p-2 rounded">${name}</div>`
-                    ).join('');
-                }
-
-            } catch (error) {
-                console.error("Erro ao carregar lista de votantes:", error);
-                listContainer.innerHTML = `<p class="text-center text-red-400">Erro: ${error.message}</p>`;
-            }
-        };
-
-        // Função para fechar o modal
-        window.closeVotersModal = () => {
-            document.getElementById('voters-modal').classList.add('hidden');
-        };
-
-        // Inicia o processo
-        window.onload = initializeAuth;
-
     </script>
 </body>
 </html>
