@@ -13,7 +13,10 @@
             --karaoke-blue: #00ffff;
         }
         body {
-            background: #1f0d1f var(--background-image) fixed center/cover;
+            background-color: #1f0d1f;
+            background-image: var(--background-image);
+            background-size: cover;
+            background-attachment: fixed;
             color: white;
             font-family: 'Changa One', sans-serif;
             min-height: 100vh;
@@ -22,33 +25,45 @@
             align-items: center;
         }
         .ranking-card {
-            backdrop-filter: blur(10px) brightness(80%);
+            backdrop-filter: blur(12px) brightness(80%);
             background-color: rgba(31, 13, 31, 0.85);
             border: 3px solid var(--karaoke-blue);
-            box-shadow: 0 0 15px var(--karaoke-pink);
+            box-shadow: 0 0 20px var(--karaoke-pink);
         }
-        .winner {
-            background: linear-gradient(45deg, var(--karaoke-pink), var(--karaoke-blue));
-            box-shadow: 0 0 20px gold;
-            color: black;
+        .winner-row {
+            background: linear-gradient(90deg, rgba(255,20,147,0.8), rgba(0,255,255,0.8));
+            color: white;
+            border: 2px solid gold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px gold; }
+            50% { box-shadow: 0 0 20px gold; }
+            100% { box-shadow: 0 0 5px gold; }
         }
     </style>
 </head>
-<body class="p-8">
-    <h1 class="text-5xl text-center mb-8 font-bold" style="font-family:'Bungee Outline'">RANKING GERAL</h1>
+<body class="p-4 sm:p-8">
+    <h1 class="text-4xl sm:text-6xl text-center mb-10 font-bold" style="font-family:'Bungee Outline'; text-shadow: 2px 2px 10px var(--karaoke-pink)">
+        RANKING DE VOTOS
+    </h1>
     
-    <div class="ranking-card w-full max-w-2xl p-6 rounded-2xl">
+    <div class="ranking-card w-full max-w-2xl p-6 rounded-2xl shadow-2xl">
         <div id="ranking-list" class="space-y-4">
-            <p class="text-center">Carregando votos...</p>
+            <div class="text-center py-10">
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-t-transparent border-karaoke-blue rounded-full mb-4"></div>
+                <p class="text-xl">Carregando resultados...</p>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const FALLBACK_CONFIG = {
+        // Configuração do seu Firebase
+        const firebaseConfig = {
             apiKey: "AIzaSyAuQ9XNsGVIp7Y0FRftnbNhDL9lGl8hNTI",
             authDomain: "karaoke-38a94.firebaseapp.com",
             projectId: "karaoke-38a94", 
@@ -57,35 +72,68 @@
             appId: "1:17039001114:web:5a382081f045d4f84273a3"
         };
 
-        const app = initializeApp(FALLBACK_CONFIG);
+        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const list = document.getElementById('ranking-list');
+        const auth = getAuth(app);
+        
+        // Definição fixa do caminho para evitar erro de 'undefined'
+        const CANDIDATES_PATH = "/artifacts/default-app-id/public/data/candidates";
 
-        onSnapshot(query(collection(db, `/artifacts/${appId}/public/data/candidates`)), (snap) => {
-            let candidates = [];
-            let totalVotos = 0;
+        async function start() {
+            try {
+                await signInAnonymously(auth);
+                listenRanking();
+            } catch (err) {
+                document.getElementById('ranking-list').innerHTML = `<p class="text-red-500 text-center">Erro de conexão: ${err.message}</p>`;
+            }
+        }
 
-            snap.forEach(d => {
-                const data = d.data();
-                const v = data.voteCount || 0;
-                totalVotos += v;
-                candidates.push({ name: data.name, votes: v });
+        function listenRanking() {
+            const listDiv = document.getElementById('ranking-list');
+            
+            onSnapshot(collection(db, CANDIDATES_PATH), (snapshot) => {
+                let candidates = [];
+                let totalVotosGeral = 0;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const v = data.voteCount || 0;
+                    totalVotosGeral += v;
+                    candidates.push({ name: data.name, votes: v });
+                });
+
+                // Ordenar do maior para o menor
+                candidates.sort((a, b) => b.votes - a.votes);
+
+                if (candidates.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center">Nenhum candidato cadastrado.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = '';
+                candidates.forEach((c, index) => {
+                    const porcentagem = totalVotosGeral > 0 ? ((c.votes / totalVotosGeral) * 100).toFixed(1) : 0;
+                    const isFirst = index === 0 && c.votes > 0;
+
+                    const row = document.createElement('div');
+                    row.className = `flex justify-between items-center p-4 rounded-xl transition-all ${isFirst ? 'winner-row scale-105' : 'bg-gray-800/50 border border-gray-700'}`;
+                    
+                    row.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <span class="text-2xl font-black">${index + 1}º</span>
+                            <span class="text-xl font-bold uppercase">${c.name}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-black ${isFirst ? 'text-white' : 'text-karaoke-blue'}">${porcentagem}%</span>
+                            <span class="text-xs opacity-70">${c.votes} votos</span>
+                        </div>
+                    `;
+                    listDiv.appendChild(row);
+                });
             });
+        }
 
-            candidates.sort((a, b) => b.votes - a.votes);
-            list.innerHTML = '';
-
-            candidates.forEach((c, i) => {
-                const perc = totalVotos > 0 ? ((c.votes / totalVotos) * 100).toFixed(1) : 0;
-                const div = document.createElement('div');
-                div.className = `p-4 rounded-xl flex justify-between items-center ${i === 0 && c.votes > 0 ? 'winner' : 'bg-gray-800'}`;
-                div.innerHTML = `
-                    <span class="text-xl font-bold">${i+1}º ${c.name}</span>
-                    <span class="text-2xl font-black">${perc}%</span>
-                `;
-                list.appendChild(div);
-            });
-        });
+        start();
     </script>
 </body>
 </html>
